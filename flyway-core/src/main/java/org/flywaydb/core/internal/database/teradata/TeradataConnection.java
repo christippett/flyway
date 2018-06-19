@@ -17,10 +17,14 @@ package org.flywaydb.core.internal.database.teradata;
 
 import org.flywaydb.core.api.configuration.Configuration;
 import org.flywaydb.core.internal.database.Connection;
+import org.flywaydb.core.internal.database.Table;
 import org.flywaydb.core.internal.database.Schema;
+import org.flywaydb.core.api.FlywayException;
+import org.flywaydb.core.internal.exception.FlywaySqlException;
 
 import java.sql.SQLException;
 import java.sql.Types;
+import java.util.concurrent.Callable;
 
 /**
  * Teradata connection.
@@ -47,5 +51,23 @@ public class TeradataConnection extends Connection<TeradataDatabase> {
     @Override
     protected String getCurrentSchemaNameOrSearchPath() throws SQLException {
         return jdbcTemplate.queryForString("SELECT database");
+    }
+
+    @Override
+    public <T> T lock(Table table, Callable<T> callable) {
+        try {
+            table.lock();
+            return callable.call();
+        } catch (SQLException e) {
+            throw new FlywaySqlException("Error locking Teradata table", e);
+        } catch (Exception e) {
+            RuntimeException rethrow;
+            if (e instanceof RuntimeException) {
+                rethrow = (RuntimeException) e;
+            } else {
+                rethrow = new FlywayException(e);
+            }
+            throw rethrow;
+        }
     }
 }
