@@ -55,6 +55,8 @@ public class TeradataConnection extends Connection<TeradataDatabase> {
 
     @Override
     public <T> T lock(Table table, Callable<T> callable) {
+        // Original `lock` method calls the `TransactionTemplate.execute()` method
+        // which uses an explicit transaction for the entire migration (not supported by Teradata)
         try {
             table.lock();
             return callable.call();
