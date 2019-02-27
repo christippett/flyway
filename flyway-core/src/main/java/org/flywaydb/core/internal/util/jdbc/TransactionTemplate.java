@@ -70,7 +70,7 @@ public class TransactionTemplate {
         boolean oldAutocommit = true;
         try {
             oldAutocommit = connection.getAutoCommit();
-            connection.setAutoCommit(false);
+            connection.setAutoCommit(false); // this is the problem
             T result = transactionCallback.call();
             connection.commit();
             return result;
